@@ -8,6 +8,7 @@
 #include "GameHUD.h"
 #include "Animation/AnimMontage.h"
 #include "Gun.h"
+#include "AK.h"
 #include "FPS_ProjectCharacter.generated.h"
 
 UCLASS(config=Game)
@@ -65,11 +66,26 @@ protected:
 
 	//Spawning Gun
 	UPROPERTY(EditDefaultsOnly, Category = Gun)
-	TSubclassOf<class AGun> GunSubclass;
+	TSubclassOf<class AGun> AKSubclass;
+
+	UPROPERTY(EditDefaultsOnly, Category = Gun)
+	TSubclassOf<class AGun> GlockSubclass;
 
 	void SpawnGun();
 
 	AGun* Gun;
+	AGun* Primary;
+	AGun* Secondary;
+	
+
+	void PrimaryGun();
+	void SecondaryGun();
+
+	bool IsSecondaryEquiped = false;
+	bool IsPrimaryEquiped = false;
+
+	UPROPERTY(BlueprintReadWrite)
+	int WeaponSwitch = 0;
 
 	//ADS
 	void Adsing();
@@ -103,36 +119,23 @@ protected:
 	UPROPERTY(BlueprintReadWrite)
 	bool Is_Shooting = false;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Gun)
-	UAnimMontage* FireMontage;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Gun)
-	UAnimMontage* ADSMontage;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Gun)
-	UAnimMontage* ADS_FireMontage;
+	
 
 	UAnimInstance* AnimInstance;
 
 	//Reload
 	void Reloading();
-	void EmptyMagazineReload(float DeltaTime);
 
 	UFUNCTION(BlueprintCallable, Category = "Gun")
 	void StopReloading();
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Gun)
-	UAnimMontage* ReloadMontage;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Gun)
-	UAnimSequence* ReloadAnim;
-
-	//UPROPERTY(BlueprintReadWrite)
 	bool IsReloading = false;
-	bool bReloading = false;
 
 	float ReloadDelay = 0;
 
+	int subtractedAmmo = 0;
+
+	void EmptyMagazineReload(float DeltaTime);
 	
 
 	//UI

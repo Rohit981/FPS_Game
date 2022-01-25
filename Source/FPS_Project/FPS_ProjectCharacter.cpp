@@ -73,11 +73,6 @@ void AFPS_ProjectCharacter::BeginPlay()
 
 	}
 
-
-	UI_Magazine = Gun->EquipedWeapon.GunAmmo;
-
-	UI_MaxMagazine = Gun->EquipedWeapon.MaxAmmo;
-
 }
 
 void AFPS_ProjectCharacter::Tick(float DeltaTime)
@@ -90,13 +85,16 @@ void AFPS_ProjectCharacter::Tick(float DeltaTime)
 
 	EmptyMagazineReload(DeltaTime);
 	
+	UI_Magazine = Gun->EquipedWeapon.Gun_UI_Magazine;
+	UI_MaxMagazine = Gun->EquipedWeapon.Gun_UI_MaxMagazine;
+		
 
 }
 
-
+#pragma region Gun Spawner
 void AFPS_ProjectCharacter::SpawnGun()
 {
-	if (GunSubclass != nullptr)
+	if (AKSubclass != nullptr)
 	{
 		UWorld* const World = GetWorld();
 		if (World != nullptr)
@@ -104,17 +102,68 @@ void AFPS_ProjectCharacter::SpawnGun()
 			FVector Location = GetActorLocation();
 			FRotator Rotation = GetActorRotation();
 
-			Gun = World->SpawnActor<AGun>(GunSubclass, Location, Rotation);
+			Primary = World->SpawnActor<AGun>(AKSubclass, Location, Rotation);
+			Secondary = World->SpawnActor<AGun>(GlockSubclass, Location, Rotation);
+
+			Gun = Primary;
+
+			Secondary->SetActorHiddenInGame(true);
+			Secondary->SetActorTickEnabled(false);
+
+			IsPrimaryEquiped = true;
+
+			WeaponSwitch = 0;
 
 			if (Gun != nullptr)
 			{
-				Gun->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("Palm_R"));
+				Primary->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("Palm_R"));
+				Secondary->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("Palm_R"));
 			}
 		}
 	}
 }
 
+void AFPS_ProjectCharacter::PrimaryGun()
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("1 Pressed")));
 
+	Primary->SetActorHiddenInGame(false);
+	Primary->SetActorTickEnabled(true);
+
+	Secondary->SetActorHiddenInGame(true);
+	Secondary->SetActorTickEnabled(false);
+
+	WeaponSwitch = 0;
+
+
+	Gun = Primary;
+
+	IsPrimaryEquiped = true;
+	IsSecondaryEquiped = false;
+
+}
+
+void AFPS_ProjectCharacter::SecondaryGun()
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("2 Pressed")));
+
+	Primary->SetActorHiddenInGame(true);
+	Primary->SetActorTickEnabled(false);
+
+	Secondary->SetActorHiddenInGame(false);
+	Secondary->SetActorTickEnabled(true);
+
+	WeaponSwitch = 1;
+
+
+	Gun = Secondary;
+
+	IsSecondaryEquiped = true;
+	IsPrimaryEquiped = false;
+
+}
+
+#pragma endregion
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -136,6 +185,9 @@ void AFPS_ProjectCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 	PlayerInputComponent->BindAction("Fire", IE_Released, this, &AFPS_ProjectCharacter::NotFiring);
 
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &AFPS_ProjectCharacter::Reloading);
+
+	PlayerInputComponent->BindAction("Primary", IE_Pressed, this, &AFPS_ProjectCharacter::PrimaryGun);
+	PlayerInputComponent->BindAction("Secondary", IE_Pressed, this, &AFPS_ProjectCharacter::SecondaryGun);
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AFPS_ProjectCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AFPS_ProjectCharacter::MoveRight);
@@ -229,7 +281,7 @@ void AFPS_ProjectCharacter::StopSprint()
 #pragma region ADS
 void AFPS_ProjectCharacter::Adsing()
 {
-	if (bReloading == false)
+	if (Gun->IsGunReloading == false)
 	{
 		IsAdsing = true;
 
@@ -237,7 +289,7 @@ void AFPS_ProjectCharacter::Adsing()
 
 		CrossHairHUD->CrossHair_Ref->SetVisibility(ESlateVisibility::Hidden);
 	}
-
+	
 
 }
 
@@ -281,8 +333,6 @@ void AFPS_ProjectCharacter::Zoom(float Value)
 
 	FRotator ADSMeshRot = FMath::Lerp(OldMeshRot, NewMeshRot, Value);
 
-	AnimInstance->Montage_Play(ADSMontage, 1.f, EMontagePlayReturnType::MontageLength, 0.f);
-
 	Mesh1P->SetRelativeLocation(ADSMeshPos);
 
 	Mesh1P->SetRelativeRotation(ADSMeshRot);
@@ -299,7 +349,7 @@ void AFPS_ProjectCharacter::IsFiring()
 {
 	if (Gun->CurrentAmmo >= 0)
 	{
-		if (bReloading == false)
+		if (Gun->IsGunReloading == false)
 		{
 			FireShot();
 
@@ -317,7 +367,6 @@ void AFPS_ProjectCharacter::NotFiring()
 
 	GetWorldTimerManager().ClearTimer(Time_Handle_Manager);
 
-	
 
 }
 
@@ -325,13 +374,13 @@ void AFPS_ProjectCharacter::FireShot()
 {
 	if (IsAdsing == true)
 	{
-		AnimInstance->Montage_Play(ADS_FireMontage, 1.f, EMontagePlayReturnType::MontageLength, 0.f);
+		AnimInstance->Montage_Play(Gun->ADS_FireMontage, Gun->EquipedWeapon.ADS_PlayRate, EMontagePlayReturnType::MontageLength, 0.f);
 
 
 	}
 	else
 	{
-		AnimInstance->Montage_Play(FireMontage, 0.8f, EMontagePlayReturnType::MontageLength, 0.f);
+		AnimInstance->Montage_Play(Gun->FireMontage, 0.8f, EMontagePlayReturnType::MontageLength, 0.f);
 
 	}
 
@@ -355,58 +404,42 @@ void AFPS_ProjectCharacter::FireShot()
 #pragma region Reload
 void AFPS_ProjectCharacter::Reloading()
 {
-	if (Gun->CurrentAmmo < Gun->EquipedWeapon.GunAmmo)
-	{
-		bReloading = true;
-		AnimInstance->Montage_Play(ReloadMontage, 1.f, EMontagePlayReturnType::MontageLength, 0.f);
-
-		Gun->Reload();
-
-
-
-	}
+	Gun->GunReloading(AnimInstance);
 
 }
 
-void AFPS_ProjectCharacter::EmptyMagazineReload(float DeltaTime)
-{
-
-	if (Gun->CurrentAmmo <= 0)
-	{
-		NotFiring();
-		bReloading = true;
-
-		ReloadDelay += DeltaTime;
-	}
-
-
-
-	if (ReloadDelay >= 0.2)
-	{
-
-		Gun->Reload();
-		AnimInstance->Montage_Play(ReloadMontage, 1.f, EMontagePlayReturnType::MontageLength, 0.f);
-
-
-		ReloadDelay = 0;
-
-		Gun->CurrentAmmo = Gun->EquipedWeapon.GunAmmo;
-
-	}
-
-
-}
 
 void AFPS_ProjectCharacter::StopReloading()
 {
-	bReloading = false;
 
-	int subtractedAmmo = Gun->EquipedWeapon.GunAmmo - UI_Magazine;
-
-	UI_MaxMagazine = UI_MaxMagazine - subtractedAmmo;
+	Gun->IsGunReloading = false;
 
 	UI_Magazine = Gun->EquipedWeapon.GunAmmo;
 	Gun->CurrentAmmo = Gun->EquipedWeapon.GunAmmo;
+
+	
+
+}
+void AFPS_ProjectCharacter::EmptyMagazineReload(float DeltaTime)
+{
+	if (Gun->CurrentAmmo <= 0)
+	{
+		NotFiring();
+		Gun->bReloading = true;
+
+		Gun->Reload();
+
+		AnimInstance->Montage_Play(Gun->ReloadMontage, 1.f, EMontagePlayReturnType::MontageLength, 0.f);
+
+		
+	}
+
+	if (Gun->IsGunReloading == true)
+	{
+		NotAdsing();
+
+		NotFiring();
+	}
 
 }
 #pragma endregion

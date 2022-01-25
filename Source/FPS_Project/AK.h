@@ -16,6 +16,8 @@ public:
 	// Sets default values for this actor's properties
 	AAK();
 
+	virtual void Shoot(UCameraComponent* FollowCamera, AActor* Player, bool IsAds) override;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -32,6 +34,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Gun)
 	float AK_BulletSpread = 50.f;
+
+	
 
 public:	
 	// Called every frame

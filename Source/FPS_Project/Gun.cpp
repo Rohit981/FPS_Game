@@ -33,7 +33,6 @@ void AGun::BeginPlay()
 
 	}
 
-
 }
 
 // Called every frame
@@ -45,57 +44,10 @@ void AGun::Tick(float DeltaTime)
 
 }
 
-
-
-
 void AGun::Shoot(UCameraComponent* FollowCamera, AActor* Player, bool IsAds)
 {
-	float BulletSpreadRange = FMath::RandRange(EquipedWeapon.BulletSpread * -1.f, EquipedWeapon.BulletSpread);
-
-	Start = FollowCamera->GetComponentLocation() + LineTraceOffset;
-	End = ((FollowCamera->GetForwardVector() * 5000) + Start ) + FVector(BulletSpreadRange, BulletSpreadRange, BulletSpreadRange);
-	
-
-	FHitResult OutHit;
-
-	TArray<AActor*> ActorsToIgnore;
-
-	ActorsToIgnore.Add(FollowCamera->GetOwner());
-	ActorsToIgnore.Add(Player);
-
-	bool IsHit = false;
-
-	IsHit = UKismetSystemLibrary::LineTraceSingle(Player->GetWorld(), Start, End, UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_Camera),
-													false, ActorsToIgnore, EDrawDebugTrace::None, OutHit, true, FLinearColor::Red, FLinearColor::Green, 0.f);
-
-	
-	/* UKismetSystemLibrary::LineTraceSingle(Player->GetWorld(), MuzzleComp->GetComponentLocation(), OutHit.ImpactPoint, UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_Camera),
-		false, ActorsToIgnore, EDrawDebugTrace::None, OutHit, true, FLinearColor::Green, FLinearColor::Green, 1.f);*/
-
-
-	if (IsHit == true)
-	{
-		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Got Hit")));
-
-		SpawnDecal(OutHit);
-			
-	}
-
-	FireAnimAndFX(IsAds);
-
-	IsShooting = true;
-
-	CurveTimeline.PlayFromStart();
-	
-	
 }
 
-void AGun::Reload()
-{
-
-	GunComp->PlayAnimation(ReloadAnim, false);
-
-}
 
 void AGun::RenderAssets()
 {
@@ -130,6 +82,7 @@ void AGun::SpawnDecal(FHitResult OutHit)
 	}
 }
 
+
 void AGun::FireAnimAndFX(bool IsAds)
 {
 	GunComp->PlayAnimation(FireAnim, false);
@@ -150,6 +103,46 @@ void AGun::FireAnimAndFX(bool IsAds)
 	MuzzleParticle->SetActive(true);
 }
 
+void AGun::GunReloading(UAnimInstance* AnimInstance)
+{
+	if (CurrentAmmo < EquipedWeapon.GunAmmo)
+	{
+		bReloading = true;
+		AnimInstance->Montage_Play(ReloadMontage, 1.f, EMontagePlayReturnType::MontageLength, 0.f);
+
+		Reload();
+
+	}
+}
+
+void AGun::Reload()
+{
+	GunComp->PlayAnimation(ReloadAnim, false);
+}
+
+
+
+void AGun::ReloadUI()
+{
+	int GunCurrentMaxAmmo = 0;
+
+	EquipedWeapon.Gun_UI_Magazine = CurrentAmmo;
+
+	if (bReloading == true)
+	{
+		AmmoDifference = EquipedWeapon.GunAmmo - CurrentAmmo;
+
+		/*GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Gloack MaxAmmo: %i"), AmmoDifference));*/
+
+		EquipedWeapon.Gun_UI_MaxMagazine = EquipedWeapon.Gun_UI_MaxMagazine - AmmoDifference;
+
+		IsGunReloading = true;
+
+		CurrentAmmo = EquipedWeapon.GunAmmo;
+
+		bReloading = false;
+	}
+}
 
 
 void AGun::Recoil(float Value)

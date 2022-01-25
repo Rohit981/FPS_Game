@@ -24,6 +24,9 @@ struct FEquipedWeapon
 	float BulletSpread;
 	float MaxRecoil;
 	float MinRecoil;
+	int Gun_UI_Magazine;
+	int Gun_UI_MaxMagazine;
+	float ADS_PlayRate;
 };
 
 UCLASS()
@@ -44,24 +47,36 @@ public:
 	// Sets default values for this actor's properties
 	AGun();
 
-	void Shoot(UCameraComponent* FollowCamera, AActor* Player, bool IsAds);
-	void Reload();
+	virtual void Shoot(UCameraComponent* FollowCamera, AActor* Player, bool IsAds);
 	void FireAnimAndFX(bool IsAds);
-
-	
-
+	void GunReloading(UAnimInstance* AnimInstance);
+	void Reload();
 	void NotRecoil();
-	
 
 	int CurrentAmmo;
+	int AmmoDifference = 0;
+	
 
 	FTransform FinalRecoilTransform;
 
-	bool IsReloading = false;
+	bool bReloading = false;
+	bool IsGunReloading = false;
 
 	FEquipedWeapon EquipedWeapon;
 
 	bool IsShooting = false;
+
+	int Gun2_UI_Magazine = 0;
+	int Gun2_UI_MaxMagazine = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Gun)
+	UAnimMontage* FireMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Gun)
+	UAnimMontage* ADS_FireMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Gun)
+	UAnimMontage* ReloadMontage;
 
 private:
 
@@ -71,6 +86,7 @@ protected:
 
 	void RenderAssets();
 	void SpawnDecal(FHitResult OutHit);
+	void ReloadUI();
 
 	UFUNCTION()
 	void Recoil(float Value);
@@ -83,6 +99,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Gun)
 	UAnimSequence* ReloadAnim;
+
+	
+
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Gun)
 	FVector LineTraceOffset;
