@@ -133,6 +133,8 @@ protected:
 
 	float ReloadDelay = 0;
 
+	int ReloadCount = 0;
+
 	int subtractedAmmo = 0;
 
 	void EmptyMagazineReload(float DeltaTime);
@@ -147,6 +149,9 @@ protected:
 
 	UPROPERTY(BlueprintReadWrite)
 	int UI_MaxMagazine = 0;
+
+	UPROPERTY(BlueprintReadWrite)
+	int LowAmmoUI = 0;
 
 protected:
 	// APawn interface

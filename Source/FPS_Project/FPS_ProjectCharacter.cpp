@@ -88,7 +88,7 @@ void AFPS_ProjectCharacter::Tick(float DeltaTime)
 	UI_Magazine = Gun->EquipedWeapon.Gun_UI_Magazine;
 	UI_MaxMagazine = Gun->EquipedWeapon.Gun_UI_MaxMagazine;
 		
-
+	LowAmmoUI = Gun->EquipedWeapon.LowAmmo;
 }
 
 #pragma region Gun Spawner
@@ -285,6 +285,8 @@ void AFPS_ProjectCharacter::Adsing()
 	{
 		IsAdsing = true;
 
+		
+
 		CurveTimeline.PlayFromStart();
 
 		CrossHairHUD->CrossHair_Ref->SetVisibility(ESlateVisibility::Hidden);
@@ -414,23 +416,32 @@ void AFPS_ProjectCharacter::StopReloading()
 
 	Gun->IsGunReloading = false;
 
-	UI_Magazine = Gun->EquipedWeapon.GunAmmo;
-	Gun->CurrentAmmo = Gun->EquipedWeapon.GunAmmo;
+	Gun->bReloading = true;
 
-	
+
+	UI_Magazine = Gun->EquipedWeapon.GunAmmo;
+
+	ReloadCount = 0;
 
 }
 void AFPS_ProjectCharacter::EmptyMagazineReload(float DeltaTime)
 {
+
 	if (Gun->CurrentAmmo <= 0)
 	{
-		NotFiring();
-		Gun->bReloading = true;
 
-		Gun->Reload();
+		if (ReloadCount == 0)
+		{
+			Gun->Reload();
 
-		AnimInstance->Montage_Play(Gun->ReloadMontage, 1.f, EMontagePlayReturnType::MontageLength, 0.f);
+			AnimInstance->Montage_Play(Gun->ReloadMontage, 1.f, EMontagePlayReturnType::MontageLength, 0.f);
 
+			Gun->IsGunReloading = true;
+
+			ReloadCount += 1;
+
+		}
+		
 		
 	}
 
@@ -440,6 +451,7 @@ void AFPS_ProjectCharacter::EmptyMagazineReload(float DeltaTime)
 
 		NotFiring();
 	}
+	
 
 }
 #pragma endregion

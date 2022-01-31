@@ -24,6 +24,8 @@ AAK::AAK()
 	
 	EquipedWeapon.ADS_PlayRate = 1.f;
 
+	EquipedWeapon.LowAmmo = 10;
+
 	
 }
 

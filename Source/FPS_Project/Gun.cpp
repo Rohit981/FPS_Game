@@ -97,7 +97,7 @@ void AGun::FireAnimAndFX(bool IsAds)
 	{
 
 
-		MuzzleParticle->SetWorldScale3D(FVector(0.8, 0.8, 0.8));
+		MuzzleParticle->SetWorldScale3D(FVector(1.f, 1.f, 1.f));
 	}
 
 	MuzzleParticle->SetActive(true);
@@ -107,7 +107,7 @@ void AGun::GunReloading(UAnimInstance* AnimInstance)
 {
 	if (CurrentAmmo < EquipedWeapon.GunAmmo)
 	{
-		bReloading = true;
+		IsGunReloading = true;
 		AnimInstance->Montage_Play(ReloadMontage, 1.f, EMontagePlayReturnType::MontageLength, 0.f);
 
 		Reload();
@@ -130,18 +130,23 @@ void AGun::ReloadUI()
 
 	if (bReloading == true)
 	{
+		
 		AmmoDifference = EquipedWeapon.GunAmmo - CurrentAmmo;
 
 		/*GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Gloack MaxAmmo: %i"), AmmoDifference));*/
 
 		EquipedWeapon.Gun_UI_MaxMagazine = EquipedWeapon.Gun_UI_MaxMagazine - AmmoDifference;
 
-		IsGunReloading = true;
-
 		CurrentAmmo = EquipedWeapon.GunAmmo;
 
 		bReloading = false;
+
+	
+
+		
 	}
+	
+	
 }
 
 

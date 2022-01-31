@@ -20,6 +20,8 @@ AGlock::AGlock()
 	
 	EquipedWeapon.ADS_PlayRate = 0.8f;
 
+	EquipedWeapon.LowAmmo = 5;
+
 }
 
 

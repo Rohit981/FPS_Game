@@ -20,6 +20,7 @@ struct FEquipedWeapon
 	Weapon weapon;
 	int GunAmmo;
 	int MaxAmmo;
+	int LowAmmo;
 	float RateOfFire;
 	float BulletSpread;
 	float MaxRecoil;
@@ -54,7 +55,8 @@ public:
 	void NotRecoil();
 
 	int CurrentAmmo;
-	int AmmoDifference = 0;
+	
+	
 	
 
 	FTransform FinalRecoilTransform;
@@ -94,15 +96,13 @@ protected:
 	FVector Start;
 	FVector End;
 
+	int AmmoDifference = 0;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Gun)
 	UAnimSequence* FireAnim;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Gun)
 	UAnimSequence* ReloadAnim;
-
-	
-
-
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Gun)
 	FVector LineTraceOffset;
