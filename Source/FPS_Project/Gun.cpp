@@ -4,6 +4,7 @@
 #include "Gun.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Components/TimelineComponent.h"
+#include "EnemyChar.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -62,23 +63,27 @@ void AGun::RenderAssets()
 
 }
 
-void AGun::SpawnDecal(FHitResult OutHit)
+void AGun::SpawnDecal(TArray<FHitResult> OutHit)
 {
-	if (DecalSubclass != nullptr)
+	for (int i = 0; i < OutHit.Num(); i++)
 	{
-		UWorld* const World = GetWorld();
-		if (World != nullptr)
+		if (DecalSubclass != nullptr)
 		{
-			FVector Location = OutHit.ImpactPoint;
-			FRotator OldRotation = OutHit.ImpactPoint.Rotation();
+			UWorld* const World = GetWorld();
+			if (World != nullptr)
+			{
+				FVector Location = OutHit[i].ImpactPoint;
+				FRotator OldRotation = OutHit[i].ImpactPoint.Rotation();
 
-			FRotator Rotation = UKismetMathLibrary::MakeRotFromX(FVector(OldRotation.Vector().X));
+				FRotator Rotation = UKismetMathLibrary::MakeRotFromX(FVector(OldRotation.Vector().X));
 
-			World->SpawnActor<ABullet_Decal>(DecalSubclass, Location, Rotation);
+				World->SpawnActor<ABullet_Decal>(DecalSubclass, Location, Rotation);
 
-			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletHit_FX, Location, Rotation);
+				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletHit_FX, Location, Rotation);
 
+			}
 		}
+
 	}
 }
 
@@ -149,11 +154,52 @@ void AGun::ReloadUI()
 	
 }
 
+void AGun::EnemyHit(TArray<FHitResult> OutHit)
+{
+	for (int i = 0; i < OutHit.Num(); i++)
+	{
+		AEnemyChar* Enemies = Cast<AEnemyChar>(OutHit[i].GetActor());
+
+		if (OutHit[i].Actor == Enemies)
+		{
+			if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Enemy Got Hit")));
+
+			if (OutHit[i].BoneName == "Head")
+			{
+				Enemies->Enemy_Health -= EquipedWeapon.HeadShotDMG;
+
+				Enemies->DamageTaken(EquipedWeapon.HeadShotDMG, OutHit[i].ImpactPoint);
+
+				BulletDMG = EquipedWeapon.HeadShotDMG;
+
+			}
+			else
+			{
+				Enemies->Enemy_Health -= EquipedWeapon.BodyShotDMG;
+
+				Enemies->DamageTaken(EquipedWeapon.BodyShotDMG, OutHit[i].ImpactPoint);
+
+				BulletDMG = EquipedWeapon.BodyShotDMG;
+
+
+			}
+
+		
+
+			if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Enemy Health: %f"), Enemies->Enemy_Health));
+
+		}
+
+		
+
+	}
+	
+}
 
 void AGun::Recoil(float Value)
 {
 	//float ActorVerticalRot = UGameplayStatics::GetPlayerController(this, 0)->RotationInput.Quaternion().Rotator().Pitch;
-	float VerticalRecoil;
+	float VerticalRecoil = 0.f;
 
 	if (IsShooting == true)
 	{

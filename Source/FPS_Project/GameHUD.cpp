@@ -13,6 +13,8 @@ void AGameHUD::BeginPlay()
 
 		AmmoAndHealth_Ref = CreateWidget<UUserWidget>(GetWorld(), AmmoAndHealth_HUD);
 
+		
+
 		// now you can use the widget directly since you have a referance for it.
 		// Extra check to  make sure the pointer holds the widget.
 		if (CrossHair_Ref && AmmoAndHealth_Ref)

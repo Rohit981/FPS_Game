@@ -26,12 +26,17 @@ public:
 	AFPS_ProjectCharacter();
 
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	float BaseTurnRate;
 
 	/** Base look up/down rate, in deg/sec. Other scaling may affect final rate. */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	float BaseLookUpRate;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Player)
+	float Health;
+
+	bool Enemy_IsLookOn = false;
 
 protected:
 
@@ -152,6 +157,25 @@ protected:
 
 	UPROPERTY(BlueprintReadWrite)
 	int LowAmmoUI = 0;
+
+	UPROPERTY(BlueprintReadWrite)
+	int EnemyDMG = 0;
+
+
+	//AI
+	class UAIPerceptionStimuliSourceComponent* stimulSource;
+
+	void SetupStimuls();
+
+
+	//Camera Lock ON
+	void EnemyLookOn();
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Camera)
+	float LookRadius;
+
+
+	
 
 protected:
 	// APawn interface

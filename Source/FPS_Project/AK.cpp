@@ -42,6 +42,9 @@ void AAK::BeginPlay()
 
 	EquipedWeapon.Gun_UI_Magazine = EquipedWeapon.GunAmmo;
 	EquipedWeapon.Gun_UI_MaxMagazine = EquipedWeapon.MaxAmmo;
+
+	EquipedWeapon.HeadShotDMG = 20;
+	EquipedWeapon.BodyShotDMG = 10;
 }
 
 // Called every frame
@@ -61,7 +64,7 @@ void AAK::Shoot(UCameraComponent* FollowCamera, AActor* Player, bool IsAds)
 	End = ((FollowCamera->GetForwardVector() * 5000) + Start) + FVector(BulletSpreadRange, BulletSpreadRange, BulletSpreadRange);
 
 
-	FHitResult OutHit;
+	TArray<FHitResult> OutHit;
 
 	TArray<AActor*> ActorsToIgnore;
 
@@ -70,7 +73,7 @@ void AAK::Shoot(UCameraComponent* FollowCamera, AActor* Player, bool IsAds)
 
 	bool IsHit = false;
 
-	IsHit = UKismetSystemLibrary::LineTraceSingle(Player->GetWorld(), Start, End, UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_Camera),
+	IsHit = UKismetSystemLibrary::LineTraceMulti(Player->GetWorld(), Start, End, UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_Camera),
 		false, ActorsToIgnore, EDrawDebugTrace::ForDuration, OutHit, true, FLinearColor::Red, FLinearColor::Green, 0.f);
 
 
@@ -80,7 +83,7 @@ void AAK::Shoot(UCameraComponent* FollowCamera, AActor* Player, bool IsAds)
 
 	if (IsHit == true)
 	{
-		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Got Hit")));
+		EnemyHit(OutHit);
 
 		SpawnDecal(OutHit);
 

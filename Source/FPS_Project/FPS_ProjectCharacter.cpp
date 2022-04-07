@@ -9,6 +9,8 @@
 #include "UObject/ConstructorHelpers.h"
 #include "Components/TimelineComponent.h"
 #include "GameFramework/Controller.h"
+#include "Perception/AIPerceptionStimuliSourceComponent.h"
+#include "Perception/AISense_Sight.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -50,6 +52,8 @@ AFPS_ProjectCharacter::AFPS_ProjectCharacter()
 	Mesh1P = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh1P"));
 	Mesh1P->SetupAttachment(FollowCamera);
 
+
+	Health = 100;
 	
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
@@ -89,6 +93,10 @@ void AFPS_ProjectCharacter::Tick(float DeltaTime)
 	UI_MaxMagazine = Gun->EquipedWeapon.Gun_UI_MaxMagazine;
 		
 	LowAmmoUI = Gun->EquipedWeapon.LowAmmo;
+
+	EnemyDMG = Gun->BulletDMG;
+
+	EnemyLookOn();
 }
 
 #pragma region Gun Spawner
@@ -165,6 +173,46 @@ void AFPS_ProjectCharacter::SecondaryGun()
 
 #pragma endregion
 
+
+void AFPS_ProjectCharacter::SetupStimuls()
+{
+	stimulSource = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("Stimul"));
+
+	stimulSource->RegisterForSense(TSubclassOf<UAISense>());
+	stimulSource->RegisterWithPerceptionSystem();
+
+}
+
+void AFPS_ProjectCharacter::EnemyLookOn()
+{
+	FVector Start = FollowCamera->GetComponentLocation();
+	FVector End = ((FollowCamera->GetForwardVector() * 5000) + Start);
+
+	FHitResult OutHit;
+
+	TArray<AActor*> ActorsToIgnore;
+
+	ActorsToIgnore.Add(FollowCamera->GetOwner());
+	ActorsToIgnore.Add(this);
+
+	bool IsHit = false;
+
+	IsHit = UKismetSystemLibrary::SphereTraceSingle(GetWorld(), Start, End, LookRadius, ETraceTypeQuery::TraceTypeQuery4 , false, ActorsToIgnore,
+		                                            EDrawDebugTrace::None, OutHit, true, FLinearColor::Blue, FLinearColor::Green, 1.f);
+
+	if (IsHit == true)
+	{
+		Enemy_IsLookOn = true;
+
+		//if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Ray Got Hit")));
+
+	}
+	else
+	{
+		Enemy_IsLookOn = false;
+
+	}
+}
 
 //////////////////////////////////////////////////////////////////////////
 // Input

@@ -28,6 +28,8 @@ struct FEquipedWeapon
 	int Gun_UI_Magazine;
 	int Gun_UI_MaxMagazine;
 	float ADS_PlayRate;
+	int HeadShotDMG;
+	int BodyShotDMG;
 };
 
 UCLASS()
@@ -56,7 +58,7 @@ public:
 
 	int CurrentAmmo;
 	
-	
+	int BulletDMG = 0;
 	
 
 	FTransform FinalRecoilTransform;
@@ -82,13 +84,16 @@ public:
 
 private:
 
+	
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 	void RenderAssets();
-	void SpawnDecal(FHitResult OutHit);
+	void SpawnDecal(TArray<FHitResult> OutHit);
 	void ReloadUI();
+	void EnemyHit(TArray<FHitResult> OutHit);
 
 	UFUNCTION()
 	void Recoil(float Value);
@@ -120,6 +125,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Gun)
 	UCurveFloat* CurveFloat;
+
+	
 
 
 public:	
