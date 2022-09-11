@@ -162,8 +162,7 @@ void AGun::EnemyHit(TArray<FHitResult> OutHit)
 
 		if (OutHit[i].Actor == Enemies)
 		{
-			if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Enemy Got Hit")));
-
+			
 			if (OutHit[i].BoneName == "Head")
 			{
 				Enemies->Enemy_Health -= EquipedWeapon.HeadShotDMG;
@@ -183,10 +182,6 @@ void AGun::EnemyHit(TArray<FHitResult> OutHit)
 
 
 			}
-
-		
-
-			if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Enemy Health: %f"), Enemies->Enemy_Health));
 
 		}
 

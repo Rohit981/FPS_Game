@@ -23,7 +23,7 @@ EBTNodeResult::Type UFindPlayerLocation::ExecuteTask(UBehaviorTreeComponent& Own
 
 	FVector Player_Location = player->GetActorLocation();
 
-	if (IsSearching == true)
+	if (IsSearching == true )
 	{
 		FNavLocation Location;
 
@@ -32,6 +32,7 @@ EBTNodeResult::Type UFindPlayerLocation::ExecuteTask(UBehaviorTreeComponent& Own
 		if (NavSystem != nullptr && NavSystem->GetRandomPointInNavigableRadius(Player_Location, Search_Radius, Location))
 		{
 			AIController->GetBlackboardComponent()->SetValueAsVector(BlackboardKey.SelectedKeyName, Location.Location);
+
 		}
 	}
 	else

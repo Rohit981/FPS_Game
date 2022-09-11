@@ -4,6 +4,7 @@
 #include "EnemyPathFindingTask.h"
 #include "AIController.h"
 #include "EnemyController.h"
+#include "LongRangeEnemyController.h"
 #include "NavigationSystem.h"
 #include "BehaviorTree/BlackboardComponent.h"
 
@@ -20,7 +21,9 @@ EBTNodeResult::Type UEnemyPathFindingTask::ExecuteTask(UBehaviorTreeComponent& O
     FNavLocation Location;
 
     AEnemyController* AIController = Cast<AEnemyController>( OwnerComp.GetAIOwner());
+ 
     APawn* AIPawn = AIController->GetPawn();
+    
 
     FVector Origin = AIPawn->GetActorLocation();
 
@@ -29,6 +32,7 @@ EBTNodeResult::Type UEnemyPathFindingTask::ExecuteTask(UBehaviorTreeComponent& O
     if (NavSystem != nullptr && NavSystem->GetRandomPointInNavigableRadius(Origin, SearchRadius, Location))
     {
         AIController->GetBlackboardComponent()->SetValueAsVector(GetSelectedBlackboardKey(), Location.Location);
+       
 
     }
 

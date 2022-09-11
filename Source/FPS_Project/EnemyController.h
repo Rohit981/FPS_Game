@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AIController.h"
+#include "EnemyChar.h"
 #include "Perception/AIPerceptionTypes.h"
 #include "EnemyController.generated.h"
 
@@ -22,14 +23,6 @@ public:
 
 protected:
 
-	virtual void BeginPlay() override;
-
-	virtual void OnPossess(APawn* const InPawn) override;
-
-	
-
-private:
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AI", meta = (ALlowPrivateAccess = true))
 		UBehaviorTree* BehaviorTree;
 
@@ -41,12 +34,27 @@ private:
 
 	class UAISenseConfig_Sight* sight_config;
 
-	UFUNCTION()
-	void Update(TArray<AActor*> const& updateActors);
+	AEnemyChar* Enemy;
+
+	/*UFUNCTION()
+	void Update(TArray<AActor*> const& updateActors);*/
 
 	UFUNCTION()
-	void OnTargetDetected(AActor * Actor, FAIStimulus stimulus);
+		void OnTargetDetected(AActor* Actor, FAIStimulus stimulus);
 
 	void SetupPerception();
+
+	void InitializeBehaviourTree();
+
+	void AIPossess(APawn* const InPawn);
+
+	void OnHit();
+
+	void Dead();
+	
+
+private:
+
+	
 
 };

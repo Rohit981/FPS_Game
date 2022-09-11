@@ -74,7 +74,7 @@ void AAK::Shoot(UCameraComponent* FollowCamera, AActor* Player, bool IsAds)
 	bool IsHit = false;
 
 	IsHit = UKismetSystemLibrary::LineTraceMulti(Player->GetWorld(), Start, End, UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_Camera),
-		false, ActorsToIgnore, EDrawDebugTrace::ForDuration, OutHit, true, FLinearColor::Red, FLinearColor::Green, 0.f);
+		false, ActorsToIgnore, EDrawDebugTrace::None, OutHit, true, FLinearColor::Red, FLinearColor::Green, 0.f);
 
 
 	/* UKismetSystemLibrary::LineTraceSingle(Player->GetWorld(), MuzzleComp->GetComponentLocation(), OutHit.ImpactPoint, UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_Camera),

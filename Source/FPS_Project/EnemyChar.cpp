@@ -2,12 +2,12 @@
 
 
 #include "EnemyChar.h"
-#include "Kismet/KismetMathLibrary.h"
 #include "Components/CapsuleComponent.h"
-#include "Components/SphereComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "Kismet/KismetMathLibrary.h"
-#include "Kismet/KismetSystemLibrary.h"
+
+
+
 
 // Sets default values
 AEnemyChar::AEnemyChar()
@@ -15,12 +15,8 @@ AEnemyChar::AEnemyChar()
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	PunchHitBox = CreateDefaultSubobject<USphereComponent>(TEXT("PunchCollider"));
-	PunchHitBox->AttachTo(RootComponent, TEXT("RightHand"));
-
 	HealthBar_UI = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthBar"));
 	HealthBar_UI->AttachTo(RootComponent);
-	
 	
 	
 }
@@ -30,11 +26,6 @@ void AEnemyChar::BeginPlay()
 {
 	Super::BeginPlay();
 
-	PunchHitBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-	PunchHitBox->OnComponentBeginOverlap.AddDynamic(this, &AEnemyChar::OnOverlapBegin);
-
-	
 }
 
 
@@ -46,40 +37,20 @@ void AEnemyChar::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	HitCheck();
-
 	Player = Cast<AFPS_ProjectCharacter>(UGameplayStatics::GetPlayerCharacter(this, 0));
 
-	if (Is_Punching == true)
-		attackWaitTime += DeltaTime;
+	AnimInstance = GetMesh()->GetAnimInstance();
 
-	if (Player->Enemy_IsLookOn == true)
+	if (Player->Enemy_IsLookOn == false)
 	{
-		HealthBar_UI->SetVisibility(true);
-	}
-	else
-	{
-		HealthBar_UI->SetVisibility(false);
+		Enemy_IsLookOn = false;
 
 	}
-
-	
 
 
 }
 
-void AEnemyChar::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
 
-	if (OtherActor && (OtherActor != this) && OtherComp)
-	{
-		Player->Health -= 10;
-
-		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Player Health: %f"), Player->Health));
-
-	}
-
-}
 
 void AEnemyChar::DamageTaken(int BulletDMG, FVector BulletHitPos)
 {
@@ -87,7 +58,20 @@ void AEnemyChar::DamageTaken(int BulletDMG, FVector BulletHitPos)
 
 	HitPosition = BulletHitPos;
 
-	if (Damage_HUD != nullptr)
+	hitCounter += 1;
+
+	if (hitCounter == 1)
+	{
+	   AnimInstance->Montage_Play(HitReaction_Montage, 1.f, EMontagePlayReturnType::Duration, 0.f);
+
+	}
+
+	Bullet_Hit = true;
+
+	EnemyAgro = true;
+
+
+	if (Damage_HUD != nullptr && Enemy_Health > 0)
 	{
 		UWorld* const World = GetWorld();
 		if (World != nullptr)
@@ -103,59 +87,25 @@ void AEnemyChar::DamageTaken(int BulletDMG, FVector BulletHitPos)
 
 }
 
-
-
-
-
-
-void AEnemyChar::HitCheck()
+void AEnemyChar::BulletHit(float DeltaTime)
 {
-	FVector Start = GetActorLocation();
-
-	FVector End = (GetActorForwardVector() * DetectionLength) + Start;
-
-
-	FHitResult OutHit;
-
-	TArray<AActor*> ActorsToIgnore;
-
-	ActorsToIgnore.Add(this);
-
-	bool IsHit = false;
-
-	IsHit = UKismetSystemLibrary::SphereTraceSingle(this->GetWorld(), Start, End, 20, ETraceTypeQuery::TraceTypeQuery3, false, ActorsToIgnore,
-		                                            EDrawDebugTrace::None, OutHit, true, FLinearColor::Red, FLinearColor::Green, 0.f);
-
-	if (IsHit == true)
+	if (Bullet_Hit == true)
 	{
-		if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Got Hit")));
-
-		Is_Punching = true;
+		HitReactionTime += DeltaTime;
 
 	}
-	else
+
+	if (HitReactionTime >= 2.f)
 	{
-		if (attackWaitTime >= 3.f)
-		{
-			Is_Punching = false;
+		HitReactionTime = 0;
 
-			attackWaitTime = 0;
+		hitCounter = 2;
 
-		}
+		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_NavWalking);
 
 	}
-}
-
-
-void AEnemyChar::Attacking()
-{
-	PunchHitBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
 }
 
-void AEnemyChar::StopAttacking()
-{
 
-	PunchHitBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-}

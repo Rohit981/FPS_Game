@@ -20,10 +20,13 @@ class AFPS_ProjectCharacter : public ACharacter
 	class UCameraComponent* FollowCamera;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	USkeletalMeshComponent* Mesh1P;
+		USkeletalMeshComponent* Mesh1P;
+	
 
 public:
 	AFPS_ProjectCharacter();
+
+	
 
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
@@ -36,9 +39,12 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Player)
 	float Health;
 
+	UPROPERTY(BlueprintReadWrite)
 	bool Enemy_IsLookOn = false;
 
 protected:
+
+	
 
 	virtual void BeginPlay() override;
 
@@ -160,6 +166,9 @@ protected:
 
 	UPROPERTY(BlueprintReadWrite)
 	int EnemyDMG = 0;
+
+	UPROPERTY(BlueprintReadWrite)
+	int EnemyHeadShotDMG = 0;
 
 
 	//AI

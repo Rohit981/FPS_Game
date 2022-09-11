@@ -7,10 +7,12 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "FPS_ProjectCharacter.h"
 #include "GameFramework/Character.h"
+
 
 
 AEnemyController::AEnemyController()
@@ -22,32 +24,12 @@ AEnemyController::AEnemyController()
 
 }
 
-void AEnemyController::BeginPlay()
-{
-	Super::BeginPlay();
-
-	if (BehaviorTree != nullptr)
-	{
-		RunBehaviorTree(BehaviorTree);
-		BehaviorTreeComponent->StartTree(*BehaviorTree);
-	}
-}
-
-void AEnemyController::OnPossess(APawn* const InPawn)
-{
-	Super::OnPossess(InPawn);
-
-	if (Blackboard != nullptr && BehaviorTree != nullptr)
-	{
-		Blackboard->InitializeBlackboard(*BehaviorTree->BlackboardAsset);
-	}
-
-}
-
-void AEnemyController::Update(TArray<AActor*> const& updateActors)
-{
-
-}
+//void AEnemyController::Update(TArray<AActor*> const& updateActors)
+//{
+//	//Super::Tick(DeltaTime);
+//
+//	
+//}
 
 void AEnemyController::OnTargetDetected(AActor* Actor, FAIStimulus stimulus)
 {
@@ -80,7 +62,50 @@ void AEnemyController::SetupPerception()
 	}
 
 
+}
+
+void AEnemyController::InitializeBehaviourTree()
+{
+	if (BehaviorTree != nullptr)
+	{
+		RunBehaviorTree(BehaviorTree);
+		BehaviorTreeComponent->StartTree(*BehaviorTree);
+	}
+}
+
+void AEnemyController::AIPossess(APawn* const InPawn)
+{
+
+	if (Blackboard != nullptr && BehaviorTree != nullptr)
+	{
+		Blackboard->InitializeBlackboard(*BehaviorTree->BlackboardAsset);
+
+
+		Enemy = Cast<AEnemyChar>(InPawn);
+
+	}
+}
+
+void AEnemyController::OnHit()
+{
+	if (Enemy->EnemyAgro == true)
+	{
+
+		Blackboard->SetValueAsBool(FName(TEXT("CanSeePlayer")), true);
+
+
+	}
+}
+
+void AEnemyController::Dead()
+{
+	if (Enemy->Enemy_Health <= 0)
+	{
+		BehaviorTreeComponent->StopTree(EBTStopMode::Safe);
+
+	}
 
 }
+
 
 

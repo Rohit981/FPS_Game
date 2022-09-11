@@ -14,6 +14,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "EnemyChar.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AFPS_ProjectCharacter
@@ -54,6 +55,8 @@ AFPS_ProjectCharacter::AFPS_ProjectCharacter()
 
 
 	Health = 100;
+
+	
 	
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
@@ -77,6 +80,8 @@ void AFPS_ProjectCharacter::BeginPlay()
 
 	}
 
+	
+
 }
 
 void AFPS_ProjectCharacter::Tick(float DeltaTime)
@@ -87,8 +92,6 @@ void AFPS_ProjectCharacter::Tick(float DeltaTime)
 
 	AnimInstance = Mesh1P->GetAnimInstance();
 
-	EmptyMagazineReload(DeltaTime);
-	
 	UI_Magazine = Gun->EquipedWeapon.Gun_UI_Magazine;
 	UI_MaxMagazine = Gun->EquipedWeapon.Gun_UI_MaxMagazine;
 		
@@ -96,6 +99,20 @@ void AFPS_ProjectCharacter::Tick(float DeltaTime)
 
 	EnemyDMG = Gun->BulletDMG;
 
+	EnemyHeadShotDMG = Gun->EquipedWeapon.HeadShotDMG;
+
+	/*if (Health <= 0)
+	{
+		UCapsuleComponent* CapsuleComp = GetCapsuleComponent();
+		CapsuleComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		CapsuleComp->SetCollisionResponseToAllChannels(ECR_Ignore);
+
+		Mesh1P->SetSimulatePhysics(true);
+		Mesh1P->SetCollisionProfileName(TEXT("Ragdoll"));
+	}*/
+
+	EmptyMagazineReload(DeltaTime);
+	
 	EnemyLookOn();
 }
 
@@ -200,15 +217,18 @@ void AFPS_ProjectCharacter::EnemyLookOn()
 	IsHit = UKismetSystemLibrary::SphereTraceSingle(GetWorld(), Start, End, LookRadius, ETraceTypeQuery::TraceTypeQuery4 , false, ActorsToIgnore,
 		                                            EDrawDebugTrace::None, OutHit, true, FLinearColor::Blue, FLinearColor::Green, 1.f);
 
+
 	if (IsHit == true)
 	{
-		Enemy_IsLookOn = true;
+		AEnemyChar* Enemies = Cast<AEnemyChar>(OutHit.Actor);
 
-		//if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Ray Got Hit")));
+		Enemies->Enemy_IsLookOn = true;
 
 	}
+
 	else
 	{
+		
 		Enemy_IsLookOn = false;
 
 	}
@@ -280,7 +300,7 @@ void AFPS_ProjectCharacter::MoveForward(float Value)
 
 		if (!IsSprinting)
 		{
-			Value *= 0.3;
+			Value *= 0.7;
 
 		}
 
@@ -302,7 +322,7 @@ void AFPS_ProjectCharacter::MoveRight(float Value)
 
 		if (!IsSprinting)
 		{
-			Value *= 0.3;
+			Value *= 0.7;
 		}
 
 		AddMovementInput(GetActorRightVector(), Value);

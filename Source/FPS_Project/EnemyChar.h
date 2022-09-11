@@ -17,23 +17,30 @@ class FPS_PROJECT_API AEnemyChar : public ACharacter
 	GENERATED_BODY()
 
 private:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Enemy, meta = (AllowPrivateAccess = "true"))
-	class USphereComponent* PunchHitBox;
 
-	UPROPERTY(EditAnyWhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	class UWidgetComponent* HealthBar_UI;
 
-	
 
 public:
 	// Sets default values for this character's properties
 	AEnemyChar();
 
 protected:
+
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+		class UWidgetComponent* HealthBar_UI;
+
+
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	void HitCheck();
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
+	
+	
+	void BulletHit(float DeltaTime);
+
+	
 
 	UAnimInstance* AnimInstance;
 
@@ -52,23 +59,26 @@ protected:
 	UPROPERTY(VisibleAnyWhere, BlueprintReadWrite, Category = Enemy)
 	AFPS_ProjectCharacter* Player;
 
-	UFUNCTION(BlueprintCallable)
-	void Attacking();
-
-	UFUNCTION(BlueprintCallable)
-	void StopAttacking();
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
+	UAnimMontage* HitReaction_Montage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
 	TSubclassOf<class AEnemyDamageUI> Damage_HUD;
 
 	bool ISDamageTaken = false;
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Enemy)
+	bool Is_Dead = false;
 
-	UFUNCTION()
-	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	float HitReactionTime = 0;
+
+	bool Bullet_Hit = false;
+
+	int hitCounter = 0;
+
+
+
+public:	
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Enemy)
 	bool Is_Punching = false;
@@ -78,5 +88,13 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void DamageTaken(int BulletDMG, FVector BulletHitPos);
+
+	UPROPERTY(BlueprintReadWrite)
+	bool Enemy_IsLookOn = false;
+
+	bool EnemyAgro = false;
+
+	bool IsHit;
+	
 
 };
